@@ -1,0 +1,19 @@
+{
+  "writeFormat": "csv",
+  "outputFileName": "output",
+  "fields": [
+    {
+      "name": "id",
+      "fType": "uuid"
+    },
+    {
+      "name": "username",
+      "fType": "username"
+    }
+  ],
+  "rowNum": 1000,
+  "writeOptions": {
+    "header": "true",
+    "sep": ";"
+  }
+}
