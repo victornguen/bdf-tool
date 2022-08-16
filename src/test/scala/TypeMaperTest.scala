@@ -1,4 +1,4 @@
-import com.bdftool.parser.TypeMaps.mapType
+import com.bdftool.parser.TypeMapper.mapType
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
