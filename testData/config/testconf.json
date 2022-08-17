@@ -1,11 +1,11 @@
 {
-  "writeFormat": "parquet",
+  "writeFormat": "csv",
   "outputDir": "testData/output",
-  "outputFileName": "output",
+  "outputFileName": "output.csv",
   "fields": [
     {
       "name": "id",
-      "fType": "uuid"
+      "fType": "uuid(41)"
     },
     {
       "name": "username",
@@ -18,11 +18,20 @@
     {
       "name": "email",
       "fType": "email"
+    },
+    {
+      "name": "description",
+      "fType": "paragraphs(2)"
+    },
+    {
+      "name": "date",
+      "fType": "date(21.01.2000)(31.12.2022)"
     }
   ],
   "rowNum": 10000,
+  "batchSize": 5000,
+  "oneFile": false,
   "writeOptions": {
-    "header": "true",
-    "sep": ";"
+    "header": "true"
   }
 }

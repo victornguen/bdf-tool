@@ -1,9 +1,10 @@
 package com.bdftool.parser
 
-import faker._
+import scala.collection.immutable.ListMap
 
 object FakerTypesMapper extends App {
 
-  def configToFunctions(config: ConfigTypes.Config): Map[String, () => String] =
-    config.fields.map(f => f.name -> TypeMapper.mapType(f.fType)).toMap
+  def configToFunctions(config: ConfigTypes.Config): ListMap[String, () => String] = ListMap(
+    config.fields.map(f => f.name -> TypeMapper.mapType(f.fType)).toArray: _*
+  )
 }
