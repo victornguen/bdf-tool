@@ -1,22 +1,14 @@
-import com.bdftool.parser.TypeMapper.mapType
+import com.bdftool.mapper.TypeMapper.mapType
 import org.scalatest.flatspec.AnyFlatSpecLike
 import org.scalatest.matchers.should.Matchers
 
 class TypeMaperTest extends AnyFlatSpecLike with Matchers{
-behavior of "mapType"
+  behavior of "mapType"
 
-  it  should "return different values"   in{
-    val r = mapType("sentence")
-    val t = mapType("sentences")
-    val e = mapType("email")
-    println(r())
-    println(r())
-    println(t())
-    println(t())
-    println(e())
-    println(e())
-    println(e())
-    println(e())
-    true
+  it should "return different values" in {
+    val s  = mapType("sentence")
+    val ss = mapType("sentences")
+    val e  = mapType("email")
+    (s() != s() && ss() != ss() && e() != e()) should be(true)
   }
 }

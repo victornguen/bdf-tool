@@ -1,9 +1,10 @@
 package com.bdftool.generator
 
-import com.bdftool.parser.{ConfigParser, ConfigTypes, FakerTypesMapper}
-import io.circe
-import org.apache.spark.sql.{SaveMode, SparkSession}
-import com.bdftool.implicits._
+import com.bdftool.configuration.ArgumentsParser
+import com.bdftool.mapper.FakerTypesMapper
+import com.bdftool.parser.ConfigParser
+import org.apache.spark.sql.SparkSession
+
 import java.nio.file.Paths
 
 //noinspection ScalaCustomHdfsFormat
@@ -13,38 +14,22 @@ object Run extends App {
     .builder()
     .master("local[*]")
     .getOrCreate()
-  val conf: Either[circe.Error, ConfigTypes.Config] =
-    ConfigParser.fromSource("testData/config/testconf.json")
-  conf.map { conf =>
-    // setting variables from conf
-    val batchSize    = conf.batchSize.getOrElse(1000)
-    val outputPath   = Paths.get(conf.outputDir, conf.outputFileName).toString
-    val format       = conf.writeFormat
-    val n            = conf.rowNum
-    val inOneFile    = conf.oneFile.getOrElse(false)
-    val writeOptions = conf.writeOptions.getOrElse(Map())
-    val steps: Int   = (n / batchSize).toInt
 
-    // mapping fields from config to Faker functions
-    val fields = FakerTypesMapper.configToFunctions(conf)
+  val params = ArgumentsParser.parse(args)
 
-    // generating and writing data
-    if (!inOneFile)
-      (1 to steps).map { _ =>
-        Generator
-          .createDataframe(fields, batchSize)
-          .writeWithOptions(writeOptions, format, SaveMode.Append, outputPath)
-      } andThen { _ =>
-        Generator
-          .createDataframe(fields, (n % batchSize).toInt)
-          .writeWithOptions(writeOptions, format, SaveMode.Append, outputPath)
-      }
-    else
-      ((1 to steps)
-        .map { i =>
-          Generator.createDataframe(fields, batchSize)
-        }
-        .reduceLeft(_ union _) union Generator.createDataframe(fields, (n % batchSize).toInt))
-        .writeWithOptions(writeOptions, format, SaveMode.Overwrite, outputPath)
-  }
+  for {
+    conf <- ConfigParser.fromSource(params.configPath)
+    batchSize    = conf.batchSize.getOrElse(1000)
+    outputPath   = Paths.get(conf.outputDir, conf.outputFileName).toString
+    format       = conf.writeFormat
+    n            = conf.rowNum
+    inOneFile    = conf.oneFile.getOrElse(false)
+    writeOptions = conf.writeOptions.getOrElse(Map())
+    steps        = (n / batchSize).toInt
+    fields       = FakerTypesMapper.configToFunctions(conf)
+
+  } yield Generator.generateAndWriteData(fields,batchSize,steps,n, writeOptions,format,outputPath, inOneFile)
+
+
+
 }

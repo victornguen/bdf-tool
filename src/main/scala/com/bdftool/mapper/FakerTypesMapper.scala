@@ -1,4 +1,6 @@
-package com.bdftool.parser
+package com.bdftool.mapper
+
+import com.bdftool.parser.ConfigTypes
 
 import scala.collection.immutable.ListMap
 

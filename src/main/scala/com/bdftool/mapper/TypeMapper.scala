@@ -1,4 +1,4 @@
-package com.bdftool.parser
+package com.bdftool.mapper
 
 import com.bdftool.functions.DataGeneration
 import faker._
@@ -7,9 +7,10 @@ import java.util.UUID
 import scala.util.matching.Regex
 
 object TypeMapper {
-  val typeWithNumericParam: Regex = "(?<name>\\w+)\\((?<arg>\\d+)\\)".r
+  val typeWithNumericParam: Regex    = "(?<name>\\w+)\\((?<arg>\\d+)\\)".r
   val typeWithAlphabeticParam: Regex = "(?<name>\\w+)\\((?<arg>\\w+)\\)".r
-  val typeWithTwoAlphabeticParam: Regex = "(?<name>\\w+)\\((?<arg1>\\w.+)\\)\\((?<arg2>\\w.+)\\)".r
+  val typeWithTwoAlphabeticParam: Regex =
+    "(?<name>\\w+)\\((?<arg1>\\w.+)\\)\\((?<arg2>\\w.+)\\)".r
 
   def mapType(str: String): () => String = () =>
     str match {
@@ -21,13 +22,18 @@ object TypeMapper {
           case "sentence"   => Lorem.sentence(arg.toInt)
           case "sentences"  => Lorem.sentences(arg.toInt).mkString(" ")
 
-          case "uuid"       => DataGeneration.generateUUID(arg.toInt)
+          case "uuid" => DataGeneration.genUUID(arg.toInt)
+          case "alphanumeric" => DataGeneration.genAlphanumeric(arg.toInt)
+          case "natural" => DataGeneration.genNaturalNumber(arg.toInt)
+          case "bigint" => DataGeneration.genBigInt(arg.toInt).toString()
         }
-      case typeWithAlphabeticParam(name, arg) => name match {
-        case "zip_code"   => Address.zip_code(arg)
-      }
-      case typeWithTwoAlphabeticParam(name, arg1, arg2) =>name match {
-          case "date" => DataGeneration.generateDateBetween(arg1, arg2).toString
+      case typeWithAlphabeticParam(name, arg) =>
+        name match {
+          case "zip_code" => Address.zip_code(arg)
+        }
+      case typeWithTwoAlphabeticParam(name, arg1, arg2) =>
+        name match {
+          case "date" => DataGeneration.genDateBetween(arg1, arg2).toString
         }
       case s if List("uuid", "id").contains(s)            => UUID.randomUUID().toString
       case "username"                                     => Internet.user_name

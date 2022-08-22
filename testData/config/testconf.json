@@ -1,7 +1,7 @@
 {
-  "writeFormat": "csv",
+  "writeFormat": "parquet",
   "outputDir": "testData/output",
-  "outputFileName": "output.csv",
+  "outputFileName": "output.parquet",
   "fields": [
     {
       "name": "id",
@@ -29,8 +29,8 @@
     }
   ],
   "rowNum": 10000,
-  "batchSize": 5000,
-  "oneFile": false,
+  "batchSize": 1000,
+  "oneFile": true,
   "writeOptions": {
     "header": "true"
   }

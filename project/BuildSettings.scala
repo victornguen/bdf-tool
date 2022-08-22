@@ -23,17 +23,19 @@ object BuildSettings {
     assembly / assemblyJarName := {
       moduleName.value + "-" + version.value + ".jar"
     },
-    assembly / test            := (Test / test).value,
+    assembly / test := (Test / test).value,
     assembly / assemblyMergeStrategy := {
-      case PathList("javax", "servlet", xs @ _*)           => MergeStrategy.first
-      case PathList(ps @ _*) if ps.last endsWith ".html"   => MergeStrategy.first
-      case PathList("datamarts","dm_sum_operations", "csv", "test/resources", file @ _*) => MergeStrategy.discard
-      case n if n.contains("services")                     => MergeStrategy.concat
-      case n if n.startsWith("reference.conf")             => MergeStrategy.concat
-      case n if n.endsWith(".conf")                        => MergeStrategy.concat
-      case meta(_)                                         => MergeStrategy.discard
-      case _                                               => MergeStrategy.first
+      case PathList("javax", "servlet", xs @ _*)         => MergeStrategy.first
+      case PathList(ps @ _*) if ps.last endsWith ".html" => MergeStrategy.first
+      case PathList( "csv", "testdata", file @ _*) =>
+        MergeStrategy.discard
+      case n if n.contains("services")         => MergeStrategy.concat
+      case n if n.startsWith("reference.conf") => MergeStrategy.concat
+      case n if n.endsWith(".conf")            => MergeStrategy.concat
+      case meta(_)                             => MergeStrategy.discard
+      case _                                   => MergeStrategy.first
     },
+    assembly / mainClass        := Some("com.bdftool.generator.Run"),
     Compile / resourceDirectory := baseDirectory.value / "src" / "main" / "resources",
     Compile / run := Defaults
       .runTask(Compile / fullClasspath, Compile / run / mainClass, Compile / run / runner)

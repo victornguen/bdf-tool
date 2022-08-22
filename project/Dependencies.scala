@@ -41,9 +41,8 @@ object Dependencies {
   ).map(_ % V.circe)
 
   val sparkDependencies = List(
-    "org.apache.spark" %% "spark-core" % V.spark % "provided",
-    "org.apache.spark" %% "spark-sql"  % V.spark % "provided",
-    "org.apache.spark" %% "spark-hive" % V.spark % "provided"
+    "org.apache.spark" %% "spark-core" % V.spark,
+    "org.apache.spark" %% "spark-sql"  % V.spark,
   )
 
   val testDependencies = List(
