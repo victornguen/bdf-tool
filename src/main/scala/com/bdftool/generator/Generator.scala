@@ -1,11 +1,16 @@
 package com.bdftool.generator
 
 import com.bdftool.implicits._
-import org.apache.spark.sql.expressions.UserDefinedFunction
-import org.apache.spark.sql.functions.udf
-import org.apache.spark.sql.types.{StringType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
+import com.github.mjakubowski84.parquet4s.{ParquetReader, ParquetWriter, Path, RowParquetRecord}
+import org.apache.parquet.schema.MessageType
+import com.github.mjakubowski84.parquet4s._
+import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName
+import org.apache.parquet.schema.PrimitiveType.PrimitiveTypeName.{BINARY, INT32, INT64}
+import org.apache.parquet.schema.Type.Repetition.{OPTIONAL, REQUIRED}
+import org.apache.parquet.schema.{LogicalTypeAnnotation, MessageType, Types}
 
+import java.nio.file.Files
+import java.time.LocalDate
 import scala.collection.immutable.ListMap
 
 object Generator {
@@ -16,27 +21,26 @@ object Generator {
     data.map(_.toSeq)
   }
 
-  def generateSchema(fields: ListMap[String, () => String]): StructType = StructType(
-    fields.map { case (k, _) => StructField(k, StringType, nullable = true) }.toList
-  )
+    def generateSchema(fields: ListMap[String, () => String], schemaName: String = "generatedSchema"): MessageType = {
+        val messageBuilder = Types
+            .buildMessage()
+        fields.foreach{ case (name, _) =>
+            messageBuilder.addField(Types.primitive(BINARY, OPTIONAL).as(LogicalTypeAnnotation.stringType()).named(name))
+        }
+        val schema: MessageType = messageBuilder.named(schemaName)
+        schema
+    }
 
-  def createDataframe(fields: ListMap[String, () => String], nRows: Int)(implicit
-      spark: SparkSession
-  ): DataFrame = {
-    val schema = generateSchema(fields)
-    val data   = generateData(fields, nRows)
-    val rows   = data.map(x => Row(x: _*))
-    val rdd    = spark.sparkContext.parallelize(rows)
-
-    spark.createDataFrame(rdd, schema)
+  def createDataframe(fields: ListMap[String, () => String], nRows: Int) = {
+    val schema: MessageType = generateSchema(fields)
+    val data: List[Seq[String]] = generateData(fields, nRows)
+      val rowParquetRecords = for {
+          rowWithFiledNames <- data.map(fields.keys.zip(_))
+      } yield RowParquetRecord(rowWithFiledNames.map{ case (name, v) => (name, BinaryValue(v))})
+//      data.map(row => row.map(field =>  RowParquetRecord.emptyWithSchema(fields.keys).updated))
+      ParquetWriter.generic(schema).writeAndClose(Path("file.parquet"), rowParquetRecords)
   }
 
-  def makeUDFs(fields: ListMap[String, () => String]): List[UserDefinedFunction] = {
-    fields.map { case (_, func) =>
-      udf(() => func())
-    }.toList
-
-  }
 
   def generateAndWriteData(fields: ListMap[String, () => String],
                            batchSize: Int,
@@ -46,7 +50,7 @@ object Generator {
                            format: String,
                            outputPath: String,
                            inOneFile: Boolean
-  )(implicit spark: SparkSession): Unit = {
+  ): Unit = {
     val remainder = (rowNum % batchSize).toInt
     // generating and writing data
     (1 to steps).foreach { _ =>
